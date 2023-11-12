@@ -5,7 +5,7 @@
 
 
 ## 介绍
-实现的模型结构以下几类，具体的模型结构的讲解可以看下我的[博客](http://thuctc.thunlp.org/)
+实现的模型结构以下几类，具体的模型结构的讲解可以看下我的[博客](https://zhuanlan.zhihu.com/p/67680037)
 1. 传统机器学习，如：决策树、随机森林、线性SVM、xgboost
 2. 传统深度学习模型，如：TextCNN、TextLSTM、FastText
 3. 图神经网络模型，如：TextGCN (开发中)
