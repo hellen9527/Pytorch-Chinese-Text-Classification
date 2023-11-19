@@ -7,6 +7,7 @@
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import LinearSVC
+from sklearn.linear_model import LogisticRegression
 from sklearn.feature_extraction.text import TfidfVectorizer
 from processors.text_classify import cls_processors
 from sklearn.metrics import accuracy_score, log_loss, classification_report, confusion_matrix
@@ -41,6 +42,8 @@ def train(args, X_train, X_dev, X_test, train_labels, dev_labels, test_labels):
     elif args.model_type == "xgb":
         # XGBoost
         clf = xgb.XGBClassifier()
+    elif args.model_type == "lr":
+        clf = LogisticRegression()
     # 训练模型
     clf.fit(X_train, train_labels)
     if hasattr(clf, "predict_proba"):
@@ -97,7 +100,7 @@ def test(args, X_test, test_labels):
 def main():
     args = get_argparse().parse_args()  # 训练输入参数处理, 需要新增/修改参数可以进入get_argparse配置
 
-    processor = cls_processors[args.task_name](args.data_dir)
+    processor = cls_processors[args.task_name](args.data_dir, data_format=args.data_format)
 
     label_list, label2id, id2label = processor.get_labels()
 

@@ -31,6 +31,10 @@ def get_argparse():
                         help="Pretrained config name or path if not the same as model_name")
     parser.add_argument("--tokenizer_name", default="", type=str,
                         help="Pretrained tokenizer name or path if not the same as model_name", )
+    parser.add_argument("--data_format", default="", type=str,
+                        help="data file format, json or label_table_words, words_table_label", )
+    parser.add_argument("--word_type", default=False, type=bool,
+                        help="if True using word else using character.")
     parser.add_argument("--cache_dir", default="", type=str,
                         help="Where do you want to store the pre-trained models downloaded from s3", )
     parser.add_argument("--train_max_seq_length", default=128, type=int,
@@ -57,6 +61,8 @@ def get_argparse():
     parser.add_argument('--adv_name', default='word_embeddings', type=str,
                         help="name for adversarial layer.")
 
+    parser.add_argument("--n_jobs", default=4, type=int,
+                        help="using multi cpu for ml training.")
     parser.add_argument("--per_gpu_train_batch_size", default=8, type=int,
                         help="Batch size per GPU/CPU for training.")
     parser.add_argument("--per_gpu_eval_batch_size", default=8, type=int,

@@ -9,6 +9,7 @@ python -u runs/run_ml_cls.py \
     --do_train \
     --data_dir ${DatasetPath} \
     --task_name jd \
-    --model_type dt \
-    --output_dir "./outputs" \
+    --model_type lr \
+    --data_format ltw \
+    --output_dir "outputs" \
     --n_jobs 4

@@ -306,7 +306,8 @@ def main():
     args.task_name = args.task_name.lower()
     if args.task_name not in processors:
         raise ValueError("Task not found: %s" % (args.task_name))
-    processor = processors[args.task_name](args.data_dir)
+    processor = processors[args.task_name](args.data_dir, word_type=args.word_type,
+                                           data_format=args.data_format)
     args.label_list, args.label2id, args.id2label = processor.get_labels()
     num_labels = len(args.label2id)
     vocab_size = len(processor.vocab_dict)
@@ -325,11 +326,12 @@ def main():
     test_dataset = load_and_cache_examples(args, processor, data_type='test')
 
     if args.model_type == 'cnn':
-        model = TextCNN(vocab_size=vocab_size, embedding_size=128,
-                        hidden_size=128, num_classes=num_labels)
+        weight = torch.Tensor([0.88, 0.12]).to(args.device)
+        model = TextCNN(vocab_size=vocab_size, embedding_size=256, hidden_size=256,
+                        loss_type=args.loss_type, num_classes=num_labels, weight=weight)
     elif args.model_type == "lstm":
-        model = TextBiLSTM(vocab_size=vocab_size, embedding_size=256,
-                           hidden_size=256, num_classes=num_labels)
+        model = TextBiLSTM(vocab_size=vocab_size, embedding_size=256, loss_type=args.loss_type,
+                           hidden_size=256, num_classes=num_labels, attention=args.lstm_attention)
     elif args.model_type == "fasttext":
         model = FastText(vocab_size=vocab_size, gram2_size=gram2_size, gram3_size=gram3_size,
                          embedding_size=200, hidden_size=200, num_classes=num_labels)

@@ -8,12 +8,14 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn import LayerNorm, CrossEntropyLoss
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
+from losses.focal_loss import FocalLoss
+from losses.label_smoothing import LabelSmoothingCrossEntropy
 
 
 class TextBiLSTM(nn.Module):
     def __init__(self, vocab_size, embedding_size, hidden_size, num_classes,
                  dropout_rate=0.5, lstm_dropout_rate=0.2, pretrained_embedding=None,
-                 attention=None):
+                 attention=None, loss_type='ce', weight=None):
         super(TextBiLSTM, self).__init__()
         if pretrained_embedding is not None:
             self.embedding = nn.Embedding.from_pretrained(pretrained_embedding,
@@ -32,7 +34,16 @@ class TextBiLSTM(nn.Module):
             self.tanh2 = nn.Tanh()
             self.fc1 = nn.Linear(hidden_size * 2, hidden_size*2)
         self.classifier = nn.Linear(hidden_size*2, num_classes)
-        self.criterion = CrossEntropyLoss()
+        assert loss_type in ['lsr', 'focal', 'ce']
+        if loss_type == 'lsr':
+            self.criterion = LabelSmoothingCrossEntropy()
+        elif loss_type == 'ce':
+            if weight is not None:
+                self.criterion = CrossEntropyLoss(weight=weight)
+            else:
+                self.criterion = CrossEntropyLoss()
+        elif loss_type == "focal":
+            self.criterion = FocalLoss()
 
     def forward(self, input_ids, input_mask, target=None):
         embs = self.embedding(input_ids)
@@ -47,7 +58,7 @@ class TextBiLSTM(nn.Module):
         # batch_size, length, embedding
         lstm_out = self.layer_norm(lstm_out)
         lstm_out = lstm_out * input_mask.float().unsqueeze(2)
-        if self.attention is not None:
+        if self.attention:
             M = self.tanh1(lstm_out)  # [128, 32, 256]
             # M = torch.tanh(torch.matmul(H, self.u))
             alpha = F.softmax(torch.matmul(M, self.w), dim=1).unsqueeze(-1)  # [128, 32, 1]
