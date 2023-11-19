@@ -53,10 +53,11 @@ bash scripts/run_plm_cls.sh
 - rf, 表示随机森林模型, n_jobs只有这个模型才会真正有多cpu加速
 - svm, 线性SVM模型
 - xgb, XGBoost模型
+- lr，逻辑回归模型
 
-传统DNN模型的启动脚本(run_dnn_cls.sh)中, model_type 可以取值: 
+传统DNN模型的启动脚本(run_dnn_cls.sh)中, model_type 可以取值如下，如果样本不均衡，可以考虑使用focal loss或者指定各个类别的loss权重（线性简单的可以设置为另一个类别的个数，出现越少权重越大，可以参考cnn的设置方式）
 - cnn, 表示TextCNN模型[1]
-- lstm, 表示TextLSTM模型[2]
+- lstm, 表示TextLSTM模型[2]，可以再设置lstm_attention参数为"true"，模型变成lstm_attention
 - fasttext, 表示FastText模型[3]
 
 基于预训练语言模型的启动脚本(run_plm_cls.sh), model_type 可以取值：
@@ -77,6 +78,10 @@ FastText|93.76%|参考论文[3]
 BERT-CLS|**98.99%**|参考论文[4] 
 
 上表所有的模型结果都没有调参，所以无法精确的进行比较，但从趋势来看，传统机器学习对于简单的分类任务也一样可以取得和传统DNN类似的效果。另外BERT无需调优（也没什么可以调的），效果确实是最好的（要显卡）
+
+## 更新日志
+- 20231112 可以处理json格式数据，传统机器学习、传统DNN模型、BERT模型
+- 20231119 增加处理txt格式用\t分隔；样本不均衡时的类别loss权重代码，或者指定focal loss代码；lstm后接attention
 
 ## 参考论文
 [1] Kim Y. Convolutional neural networks for sentence classification[J]. arXiv preprint arXiv:1408.5882, 2014.

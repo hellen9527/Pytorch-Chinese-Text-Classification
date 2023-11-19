@@ -331,7 +331,10 @@ def main():
                         loss_type=args.loss_type, num_classes=num_labels, weight=weight)
     elif args.model_type == "lstm":
         model = TextBiLSTM(vocab_size=vocab_size, embedding_size=256, loss_type=args.loss_type,
-                           hidden_size=256, num_classes=num_labels, attention=args.lstm_attention)
+                           hidden_size=256, num_classes=num_labels)
+    elif args.model_type == "lstm-attention":
+        model = TextBiLSTM(vocab_size=vocab_size, embedding_size=256, loss_type=args.loss_type,
+                           hidden_size=256, num_classes=num_labels, attention="add")
     elif args.model_type == "fasttext":
         model = FastText(vocab_size=vocab_size, gram2_size=gram2_size, gram3_size=gram3_size,
                          embedding_size=200, hidden_size=200, num_classes=num_labels)

@@ -182,7 +182,7 @@ def convert_fasttext_features(examples, max_seq_length, label2id, pad_token=0,
     for (ex_index, example) in enumerate(examples):
         if ex_index % 10000 == 0:
             logger.info("Writing example %d of %d", ex_index, len(examples))
-        word_list = example.text_a.split(" ")
+        word_list = example.text_a.split()
         input_ids = [vocab_dict.get(word, 1) for word in word_list if word.strip()]
         label_id = label2id[example.label]
         input_mask = [1] * len(input_ids)
@@ -242,7 +242,7 @@ def convert_examples_to_features(examples, max_seq_length, label2id, pad_token=0
     for (ex_index, example) in enumerate(examples):
         if ex_index % 10000 == 0:
             logger.info("Writing example %d of %d", ex_index, len(examples))
-        word_list = example.text_a
+        word_list = example.text_a.split()
         input_ids = [vocab_dict.get(word, 1) for word in word_list if word.strip()]
         label_id = label2id[example.label]
         input_mask = [1] * len(input_ids)
@@ -271,22 +271,39 @@ def convert_examples_to_features(examples, max_seq_length, label2id, pad_token=0
 
 class JDWordsProcessor(DataProcessor, ABC):
     word_type = None
+    data_format = "json"
 
-    def __init__(self, data_dir, word_type=True):
+    def __init__(self, data_dir, word_type=True, data_format=None, ch_flag=True):
+        if data_format:
+            self.data_format = data_format
+        self.ch_flag = ch_flag
         self.word_type = word_type
-        self.label_list = []
-        with open(f"{data_dir}/labels.txt", 'r', encoding="utf-8") as fr:
-            for line in fr:
-                self.label_list.append(line.strip())
-        self.id2label = {idx: label for idx, label in enumerate(self.label_list)}
-        self.label2id = {label: idx for idx, label in enumerate(self.label_list)}
         self.vocab_dict = {"[UNK]": 1, "[PAD]": 0}
         self.gram2_dict = {"[UNK]": 1, "[PAD]": 0}
         self.gram3_dict = {"[UNK]": 1, "[PAD]": 0}
+        tmp_label_set = set()
         with open(f"{data_dir}/train.txt", "r", encoding="utf-8") as fr:
             for line in fr:
-                json_data = json.loads(line.strip())
-                word_list = json_data['words'].split(" ")
+                if self.data_format == "json":
+                    json_data = json.loads(line.strip())
+                    word_list = json_data['words'].split()
+                    label = json_data['label']
+                    tmp_label_set.add(label)
+                elif self.data_format == "ltw":
+                    tmpdata = line.strip().split('\t')
+                    if len(tmpdata) != 2:
+                        continue
+                    word_list = tmpdata[1].split()
+                    tmp_label_set.add(tmpdata[0])
+                elif self.data_format == "wtl":
+                    tmpdata = line.strip().split('\t')
+                    if len(tmpdata) != 2:
+                        continue
+                    word_list = tmpdata[0].split()
+                    tmp_label_set.add(tmpdata[1])
+                else:
+                    print("error data format...")
+                    exit(1)
                 for i, word in enumerate(word_list):
                     if word not in self.vocab_dict:
                         self.vocab_dict[word] = len(self.vocab_dict)
@@ -296,6 +313,18 @@ class JDWordsProcessor(DataProcessor, ABC):
                     if i < len(word_list) - 2:
                         gram3 = "".join(word_list[i: i+3])
                         self.gram3_dict[gram3] = len(self.gram3_dict)
+        label_file = f"{data_dir}/labels.txt"
+        if os.path.exists(label_file):
+            self.label_list = []
+            with open(label_file, 'r', encoding="utf-8") as fr:
+                for line in fr:
+                    self.label_list.append(line.strip())
+        else:
+            self.label_list = list(tmp_label_set)
+            with open(label_file, 'w', encoding='utf-8') as fw:
+                fw.write("\n".join(self.label_list))
+        self.id2label = {idx: label for idx, label in enumerate(self.label_list)}
+        self.label2id = {label: idx for idx, label in enumerate(self.label_list)}
 
     def get_train_examples(self, data_dir):
         """See base class."""
@@ -317,11 +346,25 @@ class JDWordsProcessor(DataProcessor, ABC):
         """Creates examples for the training and dev sets."""
         examples = []
         for (i, line) in enumerate(lines):
-            json_data = json.loads(line.strip())
-            words = json_data['words']
-            label = json_data['label']
+            if self.data_format == "json":
+                json_data = json.loads(line.strip())
+                words = json_data['words']
+                label = json_data['label']
+            elif self.data_format == "ltw":
+                tmpdata = line.split("\t")
+                if len(tmpdata) != 2:
+                    continue
+                label, words = tmpdata
+            elif self.data_format == "wtl":
+                tmpdata = line.split("\t")
+                if len(tmpdata) != 2:
+                    continue
+                words, label = tmpdata
             guid = "%s-%s" % (set_type, i)
-            text = words.replace(" ", "")
+            if self.ch_flag:
+                text = words.replace(" ", "")
+            else:
+                text = words
             if self.word_type:
                 examples.append(InputExample(guid=guid, text_a=words, label=label))
             else:
