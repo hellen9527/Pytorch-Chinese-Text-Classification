@@ -6,7 +6,7 @@ export DatasetPath="${CUR_DIR}/datasets"
 
 # bert训练
 CUDA_VISIBLE_DEVICES=0 python -u runs/run_bert_cls.py \
-    --do_test \
+    --do_train \
     --data_dir ${DatasetPath} \
     --task_name JD \
     --model_type bert \
