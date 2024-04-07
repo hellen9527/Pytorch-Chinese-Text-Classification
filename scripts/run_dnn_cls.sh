@@ -11,7 +11,7 @@ CUDA_VISIBLE_DEVICES=0 python -u runs/run_dnn_cls.py \
     --task_name JD \
     --model_type cnn \
     --loss_type ce \
-    --data_format ltw \
+    --data_format json \
     --word_type True \
     --overwrite_output_dir \
     --output_dir "${CUR_DIR}/outputs" \
