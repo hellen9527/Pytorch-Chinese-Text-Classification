@@ -10,6 +10,6 @@ python -u runs/run_ml_cls.py \
     --data_dir ${DatasetPath} \
     --task_name jd \
     --model_type lr \
-    --data_format ltw \
+    --data_format json \
     --output_dir "outputs" \
     --n_jobs 4
