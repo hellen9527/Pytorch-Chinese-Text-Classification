@@ -63,6 +63,14 @@ bash scripts/run_plm_cls.sh
 基于预训练语言模型的启动脚本(run_plm_cls.sh), model_type 可以取值：
 - bert, 表示使用bert-base-chinese作为编码结构, [cls]进行分类[4]
 
+### 启动参数说明
+- 训练用--do_train, 测试用--do_test；暂时只支持这两种
+- data_dir 是指数据存放的目录，可以修改启动脚本里的值指向自己的数据
+- data_format：如果是默认文件就用json，其他格式的文件支持words\tlabel,这种就用"wtl"；另外如果是label\twords,就用"ltw"，words用空格拼接
+- n_jobs: 是指用多少个cpu核，不是所有的模型都支持，所以也可以不用
+- output_dir: 输出的目录
+- task_name：可以不用改，或者你要自己写解析文件的代码也可以继承一个解析类出来
+  
 ## 效果
 每训练100个step在开发集进行评估，选最好的模型在测试集上评估
 
